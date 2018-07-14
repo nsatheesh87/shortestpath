@@ -51,13 +51,15 @@ class RouteController extends Controller
             $requestObject = ['path' => $routeInput, 'token' => $token];
             $tokenObject = Token::create($requestObject);
 
-            $job = (new RouterJob($tokenObject))->onQueue('RouteQueue');
-            dispatch($job);
+            if($tokenObject) {
+                $job = (new RouterJob($tokenObject))->onQueue('RouteQueue');
+                dispatch($job);
 
-            return response()
-                ->json([
-                    'token'   => $token
-            ], 200);
+                return response()
+                    ->json([
+                        'token'   => $token
+                    ], 200);
+            }
         }
 
 
