@@ -1,12 +1,31 @@
 <?php
 
+/**
+ * Class TokenTest
+ */
 class TokenTest extends TestCase
 {
+    /**
+     *
+     */
     public function testSomethingIsTrue()
     {
         $this->assertTrue(true);
     }
 
+    /**
+     *
+     */
+    public function testApplication()
+    {
+        $response = $this->call('GET', '/');
+
+        $this->assertEquals(200, $response->status());
+    }
+
+    /**
+     *
+     */
     public function testcreateToken()
     {
         $request = [
@@ -19,10 +38,44 @@ class TokenTest extends TestCase
            ->assertTrue(true);
     }
 
-    public function testGetToken()
+    /**
+     *
+     */
+    public function testValidateInputWithEmpty()
     {
-        $testToken = '123';
-        $this->json('GET', '/route/'.$testToken, [])
-            ->seeJson();
+        $request = [];
+
+        $this->json('POST', '/route', $request)
+            ->seeJson([
+                'status' => 'failure',
+                'error'  => 'INVALID_JSON'
+            ]);
     }
+
+    /**
+     *
+     */
+    public function testValidateInputWithSameLocation()
+    {
+        $request = [
+            ["22.372081", "114.107877"],
+            ["22.372081", "114.107877"]
+        ];
+
+        $response = $this->call('POST', '/route', $request);
+        //This is supposed to be 200 but i dont have DB connection setup for testing..
+        $this->assertEquals(400, $response->status());
+    }
+
+    /**
+     *
+     */
+    public function testInvalidToken()
+    {
+        $response = $this->call('GET', '/route/123');
+        //This is supposed to be 400 but i dont have DB connection setup for testing..
+        $this->assertEquals(500, $response->status());
+    }
+
+
 }

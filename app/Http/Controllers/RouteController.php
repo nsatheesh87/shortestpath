@@ -53,7 +53,7 @@ class RouteController extends Controller
         return response()
             ->json([
                 'status'    => 'failure',
-                'error'   => 'Invalid Token'
+                'error'   => 'Invalid_Token'
             ], 400);
     }
 
