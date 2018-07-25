@@ -26,6 +26,12 @@ docker-compose exec app php artisan migrate
 
 ```
 
+Step 7: (To run phpunit test)
+
+````
+docker run --rm -v /$(PWD):/app koutsoumpos89/composer-php7.1 vendor/bin/phpunit
+````
+
  HTTP endpoints:
 
 - [POST `/route`: Submit start point and drop-off locations](#submit-start-point-and-drop-off-locations)
