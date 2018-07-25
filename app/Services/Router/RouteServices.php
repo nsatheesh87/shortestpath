@@ -15,15 +15,37 @@ class RouteServices implements RouteServiceInterface
 
     /**
      * @param array $routeArray
-     * @return bool
+     * @return array
      */
     public function isValid($routeArray = [])
      {
+         $result = ['success' => false];
          if(is_array($routeArray) && !empty($routeArray))
          {
-             return true;
+             if(sizeof($routeArray) > 1){
+                 $newRoutes = array_map(function($item){
+                     if(sizeof($item) == 2){
+                         $latlng = array_values($item);
+                         if(is_numeric($latlng[0]) && (((float) $latlng[0]) == $latlng[0])
+                             && is_numeric($latlng[1]) && (((float) $latlng[1]) == $latlng[1])){
+                             return 1;
+                         }
+                     }
+                     return 0;
+                 }, $routeArray);
+                 if(array_sum($newRoutes) == sizeof($newRoutes)){
+                     $result['success'] = true;
+                     $result['data'] = $routeArray;
+                 }else{
+                     $result['error'] = 'INVALID_INPUT_PARAMETERS';
+                 }
+             }else{
+                 $result['error'] = 'MISSING_DESTINATION';
+             }
          }
-         return false;
+
+         return $result;
+
      }
 
     /**
@@ -84,7 +106,7 @@ class RouteServices implements RouteServiceInterface
              }
          }
 
-         if($distance && $duration){
+         if(isset($distance) && isset($duration)){
              $result['total_distance'] = $distance;
              $result['total_time'] = $duration;
          }else{

@@ -65,9 +65,11 @@ class RouteController extends Controller
     {
         $routeInput  = $request->json()->all();
 
-        if($this->routeServices->isValid($routeInput)) {
+        $validated = $this->routeServices->isValid($routeInput);
+
+        if($validated['success']) {
             $token =  $this->generateUuidToken();
-            $requestObject = ['path' => $routeInput, 'token' => $token];
+            $requestObject = ['path' => $validated['data'], 'token' => $token];
             $tokenObject = Token::create($requestObject);
 
             if($tokenObject) {
@@ -85,7 +87,7 @@ class RouteController extends Controller
         return response()
             ->json([
                 'status'    => 'failure',
-                'message'   => 'BAD REQUEST-INVALID PARAMETERS'
+                'error'   => $validated['error']
             ], 400);
     }
 
