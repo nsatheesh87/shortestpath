@@ -42,6 +42,8 @@ class RouteServices implements RouteServiceInterface
              }else{
                  $result['error'] = 'MISSING_DESTINATION';
              }
+         } else {
+             $result['error'] = 'INVALID_JSON';
          }
 
          return $result;
@@ -71,7 +73,6 @@ class RouteServices implements RouteServiceInterface
                  $waypoints[] = $this->buildWaypoint($key, $routes);
              }
          }
-
          $distance = $duration = false;
          $routeResults = [];
          // Todo - Improve this method by using CURL Library
@@ -109,6 +110,7 @@ class RouteServices implements RouteServiceInterface
          if(isset($distance) && isset($duration)){
              $result['total_distance'] = $distance;
              $result['total_time'] = $duration;
+             $result['path'] = $this->distanceHaversine($routes);
          }else{
              $errors = array_unique(array_map(function($item){
                  return (int) $item['error'];
@@ -154,4 +156,55 @@ class RouteServices implements RouteServiceInterface
          }
 
     }
+
+    /**
+     * @param array $routesArray
+     * @param array $path
+     * @return array
+     */
+    private function distanceHaversine($routesArray = [], $path = [])
+    {
+        $earthRadius = 6371000;
+        $origin = array_shift($routesArray);
+        array_push($path, $origin);
+        $distance = [];
+        foreach($routesArray as $key => $route) {
+             $latFrom = deg2rad($origin[1]);
+             $lonFrom = deg2rad($origin[0]);
+             $latTo = deg2rad($route[1]);
+             $lonTo = deg2rad($route[0]);
+
+             $latDelta = $latTo - $latFrom;
+             $lonDelta = $lonTo - $lonFrom;
+
+             $angle = 2 * asin(sqrt(pow(sin($latDelta / 2), 2) +
+                     cos($latFrom) * cos($latTo) * pow(sin($lonDelta / 2), 2)));
+             $distance[$key] = $angle * $earthRadius.'\n';
+
+         }
+        uasort($distance, array($this, 'compareDistance'));
+
+        $routesArrayTemp = $routesArray;
+        $routesArray = array_replace(array_flip(array_keys($distance)), $routesArrayTemp);
+        $routesArray = array_values($routesArray);
+
+        if(count($routesArray) > 1){
+            //Call the function again. until find the distance for all the destinations.
+            return $this->distanceHaversine($routesArray, $path);
+        }
+        array_push($path, $routesArray[0]);
+        return $path;
+    }
+
+    /**
+     * @param $a
+     * @param $b
+     * @return int
+     */
+    private function compareDistance($a, $b) {
+        if($a > $b) return 1;
+        elseif($a < $b) return -1;
+        else return 0;
+    }
+
 }

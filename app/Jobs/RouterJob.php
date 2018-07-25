@@ -39,6 +39,7 @@ class RouterJob implements ShouldQueue
         } else {
             $this->token->total_distance = $shortestPath['total_distance'];
             $this->token->total_time = $shortestPath['total_time'];
+            $this->token->path = $shortestPath['path'];
             $this->token->status = 'success';
         }
         $this->token->save();
