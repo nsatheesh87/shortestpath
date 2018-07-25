@@ -7,15 +7,30 @@ use App\Services\Router\RouteServices as RouteServices;
 use App\Token;
 use App\Jobs\RouterJob;
 
+/**
+ * Class RouteController
+ * @package App\Http\Controllers
+ */
 class RouteController extends Controller
 {
+    /**
+     * @var RouteServices
+     */
     protected $routeServices;
 
+    /**
+     * RouteController constructor.
+     * @param RouteServices $routeServices
+     */
     public function __construct(RouteServices $routeServices)
     {
         $this->routeServices = $routeServices;
     }
 
+    /**
+     * @param $token
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function getRoute($token)
     {
         $token = Token::where(['token' => $token])->first();
@@ -42,12 +57,16 @@ class RouteController extends Controller
             ], 400);
     }
 
+    /**
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function create(Request $request)
     {
         $routeInput  = $request->json()->all();
 
         if($this->routeServices->isValid($routeInput)) {
-            $token =  bin2hex(random_bytes(25));
+            $token =  $this->generateUuidToken();
             $requestObject = ['path' => $routeInput, 'token' => $token];
             $tokenObject = Token::create($requestObject);
 
@@ -68,6 +87,16 @@ class RouteController extends Controller
                 'status'    => 'failure',
                 'message'   => 'BAD REQUEST-INVALID PARAMETERS'
             ], 400);
+    }
+
+    /**
+     * @return string
+     */
+    private function generateUuidToken() {
+        $data = random_bytes(16);
+        $data[6] = chr(ord($data[6]) & 0x0f | 0x40);
+        $data[8] = chr(ord($data[8]) & 0x3f | 0x80);
+        return vsprintf('%s%s-%s-%s-%s-%s%s%s', str_split(bin2hex($data), 4));
     }
 
 }
